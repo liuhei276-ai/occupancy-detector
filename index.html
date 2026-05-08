@@ -235,12 +235,13 @@
     <div class="card">
       <div class="card-title">📶 录入附近WiFi</div>
       <div style="font-size: 12px; color: var(--text2); margin-bottom: 12px;">
-        打开手机「设置→WLAN」，查看附近WiFi列表，把信息填进来：
+        打开手机「设置→WLAN」，把看到的WiFi逐个填进来。支持批量粘贴。
       </div>
 
+      <!-- 逐个添加 -->
       <div class="input-row">
         <label class="input-label">WiFi 名称（SSID）</label>
-        <input type="text" id="wifiName" placeholder="如：TP-LINK_5G_3021">
+        <input type="text" id="wifiName" placeholder="如：TP-LINK_5G_3021" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('wifiRssi').focus();}">
       </div>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
         <div class="input-row">
@@ -266,13 +267,25 @@
       </div>
       <div class="input-row">
         <label class="input-label">备注（可选）</label>
-        <input type="text" id="wifiNote" placeholder="如：1号楼附近、疑似住户">
+        <input type="text" id="wifiNote" placeholder="如：1号楼附近、疑似住户" onkeydown="if(event.key==='Enter'){event.preventDefault();addWifi();}">
       </div>
 
       <button class="btn btn-cyan" onclick="addWifi()" style="margin-top: 4px;">+ 添加这个WiFi</button>
+
+      <!-- 批量粘贴 -->
+      <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border);">
+        <div style="font-size: 13px; font-weight: 500; margin-bottom: 8px;">📋 批量粘贴（从WiFi列表复制）</div>
+        <div style="font-size: 11px; color: var(--text2); margin-bottom: 8px;">
+          每行一个：名称,信号强度  如：<br>
+          <code style="background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px;">TP-LINK_3021,-50</code><br>
+          <code style="background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px;">Xiaomi_5G,-40</code>
+        </div>
+        <textarea id="batchInput" style="width:100%; height: 80px; padding: 10px; border-radius: 10px; border: 1px solid var(--border); background: rgba(255,255,255,0.04); color: var(--text); font-size: 13px; resize: vertical; outline: none;" placeholder="TP-LINK_3021,-50&#10;Xiaomi_5G,-40&#10;HUAWEI_HOME,-60"></textarea>
+        <button class="btn btn-dark" onclick="batchAddWifi()" style="margin-top: 8px;">批量添加</button>
+      </div>
     </div>
 
-    <!-- 当前点位已采WiFi -->
+    <!-- 当前点位已采WiFi列表 -->
     <div id="currentWifiList"></div>
 
     <div style="height: 20px;"></div>
@@ -455,9 +468,49 @@ function addWifi() {
   document.getElementById('wifiRssi').value = '';
   document.getElementById('wifiBand').value = '';
   document.getElementById('wifiNote').value = '';
+  document.getElementById('wifiName').focus();
 
   renderCurrentWifis();
   toast(`已添加: ${name}`);
+}
+
+function batchAddWifi() {
+  const text = document.getElementById('batchInput').value.trim();
+  if (!text) { toast('请先粘贴WiFi列表'); return; }
+
+  const lines = text.split(/\n/).map(l => l.trim()).filter(l => l);
+  let added = 0;
+
+  lines.forEach(line => {
+    // 支持格式：名称,信号  或  名称 信号  或  名称,-50
+    let parts = line.split(',');
+    if (parts.length < 2) parts = line.split(/\s+/);
+    if (parts.length < 2) return;
+
+    const name = parts[0].trim();
+    let rssiStr = parts[1].trim().replace(/dBm/i, '').replace(/dbm/i, '');
+    let rssi = parseInt(rssiStr);
+
+    // 如果输入的是正数，转成负数
+    if (rssi > 0) rssi = -rssi;
+    // 如果没带负号且是合理的信号值
+    if (!rssiStr.startsWith('-') && rssiStr.length <= 2) rssi = -rssi;
+
+    if (!name || isNaN(rssi)) return;
+
+    // 自动判断频段（名称含5G/5g则5G，否则2.4G）
+    const band = /5[Gg]/.test(name) ? '5G' : '2.4G';
+
+    currentPoint.wifis.push({
+      id: genId(), name: name, rssi: rssi.toString(),
+      band: band, note: ''
+    });
+    added++;
+  });
+
+  document.getElementById('batchInput').value = '';
+  renderCurrentWifis();
+  toast(`批量添加了 ${added} 个WiFi`);
 }
 
 function renderCurrentWifis() {
