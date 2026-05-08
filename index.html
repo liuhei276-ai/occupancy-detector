@@ -4,535 +4,870 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#1a1a2e">
-<title>楼房入住率检测</title>
+<meta name="theme-color" content="#f5f7fa">
+<title>小区入住率调查</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --primary: #2563eb;
+    --primary-light: #dbeafe;
+    --success: #16a34a;
+    --warning: #d97706;
+    --danger: #dc2626;
+    --bg: #f5f7fa;
+    --card: #ffffff;
+    --text: #1f2937;
+    --text2: #6b7280;
+    --border: #e5e7eb;
+    --radius: 14px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: #0f0f1a;
-    color: #e0e0e0;
-    min-height: 100vh;
-    overflow-x: hidden;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; overflow-x: hidden;
   }
-  .page { display: none; padding: 16px; max-width: 480px; margin: 0 auto; }
-  .page.active { display: block; animation: fadeIn 0.3s ease; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .page { display: none; min-height: 100vh; }
+  .page.active { display: block; animation: fadeIn 0.25s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-  /* 顶部标题 */
-  .header { text-align: center; padding: 24px 0 16px; }
-  .header h1 { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: 1px; }
-  .header p { font-size: 13px; color: #8892b0; margin-top: 6px; }
+  /* 顶部导航 */
+  .nav-bar {
+    position: sticky; top: 0; z-index: 50;
+    background: var(--card); border-bottom: 1px solid var(--border);
+    padding: 12px 16px; display: flex; align-items: center; gap: 10px;
+  }
+  .nav-bar .back-btn {
+    width: 36px; height: 36px; border-radius: 50%; border: none;
+    background: var(--bg); font-size: 18px; cursor: pointer; color: var(--text);
+  }
+  .nav-bar h2 { flex: 1; font-size: 17px; font-weight: 600; text-align: center; margin-right: 36px; }
+
+  /* 内容区 */
+  .container { padding: 16px; max-width: 520px; margin: 0 auto; padding-bottom: 90px; }
 
   /* 卡片 */
   .card {
-    background: #1a1a2e;
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 16px;
-    border: 1px solid #2a2a40;
+    background: var(--card); border-radius: var(--radius);
+    padding: 18px; margin-bottom: 14px;
+    box-shadow: var(--shadow); border: 1px solid var(--border);
   }
-  .card-title { font-size: 15px; font-weight: 600; color: #ccd6f6; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .card-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; color: var(--text); }
+  .card-sub { font-size: 13px; color: var(--text2); margin-bottom: 12px; }
 
   /* 按钮 */
   .btn {
-    display: block; width: 100%; padding: 16px;
+    display: block; width: 100%; padding: 14px;
     border: none; border-radius: 12px; font-size: 16px; font-weight: 600;
-    cursor: pointer; transition: all 0.2s; text-align: center;
+    cursor: pointer; transition: all 0.15s; text-align: center;
   }
-  .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; }
-  .btn-primary:active { transform: scale(0.97); opacity: 0.9; }
-  .btn-secondary { background: #2a2a40; color: #ccd6f6; margin-top: 10px; }
-  .btn-secondary:active { background: #3a3a50; }
-  .btn-success { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: #fff; }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:active { opacity: 0.85; transform: scale(0.98); }
+  .btn-secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:active { background: #e5e7eb; }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-sm { padding: 8px 14px; font-size: 13px; width: auto; display: inline-block; }
+
+  /* 列表项 */
+  .list-item {
+    background: var(--card); border-radius: var(--radius);
+    padding: 16px; margin-bottom: 10px;
+    box-shadow: var(--shadow); border: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .list-item:active { background: #f9fafb; transform: scale(0.99); }
+  .list-icon { width: 44px; height: 44px; border-radius: 12px;
+    background: var(--primary-light); color: var(--primary);
+    display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
+  }
+  .list-info { flex: 1; }
+  .list-title { font-size: 15px; font-weight: 600; }
+  .list-meta { font-size: 12px; color: var(--text2); margin-top: 3px; }
+  .list-arrow { color: var(--text2); font-size: 18px; }
+
+  /* 空状态 */
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--text2); }
+  .empty-state .icon { font-size: 56px; margin-bottom: 16px; opacity: 0.5; }
+  .empty-state p { font-size: 14px; margin-bottom: 20px; }
 
   /* 拍照区域 */
   .upload-area {
-    border: 2px dashed #3a3a50;
-    border-radius: 16px;
-    padding: 40px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.2s;
+    border: 2px dashed var(--border); border-radius: var(--radius);
+    padding: 36px 20px; text-align: center; cursor: pointer;
+    transition: all 0.2s; background: var(--bg);
   }
-  .upload-area:active { border-color: #667eea; background: #151525; }
-  .upload-icon { font-size: 48px; margin-bottom: 12px; }
-  .upload-text { font-size: 15px; color: #ccd6f6; font-weight: 500; }
-  .upload-hint { font-size: 12px; color: #8892b0; margin-top: 8px; }
+  .upload-area:active { border-color: var(--primary); background: var(--primary-light); }
+  .upload-icon { font-size: 42px; margin-bottom: 10px; }
+  .upload-text { font-size: 15px; font-weight: 500; color: var(--text); }
+  .upload-hint { font-size: 12px; color: var(--text2); margin-top: 6px; }
 
   /* 图片预览 */
-  .img-preview { width: 100%; border-radius: 12px; display: block; }
-  .canvas-container { position: relative; width: 100%; }
-  .canvas-container canvas { width: 100%; border-radius: 12px; display: block; }
+  .img-preview { width: 100%; border-radius: 10px; display: block; }
+  canvas { width: 100%; border-radius: 10px; display: block; }
 
-  /* 参数滑动条 */
-  .param-row { margin-bottom: 16px; }
-  .param-label { display: flex; justify-content: space-between; font-size: 13px; color: #a0aec0; margin-bottom: 6px; }
-  .param-label span:last-child { color: #667eea; font-weight: 600; }
-  input[type="range"] {
-    width: 100%; height: 6px; border-radius: 3px; background: #2a2a40;
-    outline: none; -webkit-appearance: none; appearance: none;
-  }
-  input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none; appearance: none; width: 20px; height: 20px;
-    border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2);
-    cursor: pointer; box-shadow: 0 2px 8px rgba(102,126,234,0.4);
-  }
+  /* 输入框 */
+  .input-row { margin-bottom: 14px; }
+  .input-label { font-size: 13px; color: var(--text2); margin-bottom: 6px; display: block; }
   input[type="text"], input[type="number"] {
-    width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #2a2a40;
-    background: #0f0f1a; color: #e0e0e0; font-size: 15px; outline: none;
+    width: 100%; padding: 12px 14px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--card); color: var(--text);
+    font-size: 15px; outline: none;
   }
-  input[type="text"]:focus, input[type="number"]:focus { border-color: #667eea; }
+  input:focus { border-color: var(--primary); }
+
+  /* 快捷按钮组 */
+  .quick-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .quick-btn {
+    padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--bg); font-size: 13px; color: var(--text2); cursor: pointer;
+  }
+  .quick-btn:active { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+
+  /* 进度条 */
+  .progress-bar {
+    height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin: 8px 0;
+  }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), #60a5fa); border-radius: 3px; transition: width 0.3s; }
 
   /* 统计指标 */
-  .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
   .metric {
-    background: #1a1a2e; border-radius: 12px; padding: 16px; text-align: center;
-    border: 1px solid #2a2a40;
+    background: var(--card); border-radius: var(--radius); padding: 14px; text-align: center;
+    border: 1px solid var(--border); box-shadow: var(--shadow);
   }
-  .metric-value { font-size: 28px; font-weight: 700; color: #667eea; }
-  .metric-label { font-size: 12px; color: #8892b0; margin-top: 4px; }
-  .metric-value.highlight { color: #38ef7d; }
-  .metric-value.warn { color: #f56565; }
+  .metric-value { font-size: 24px; font-weight: 700; color: var(--primary); }
+  .metric-label { font-size: 12px; color: var(--text2); margin-top: 3px; }
+  .metric-value.green { color: var(--success); }
+  .metric-value.orange { color: var(--warning); }
+  .metric-value.red { color: var(--danger); }
 
-  /* 楼层详情 */
-  .floor-tag {
-    display: inline-block; padding: 4px 10px; border-radius: 6px;
-    font-size: 12px; font-weight: 500; margin: 2px;
+  /* 楼栋卡片（汇总页） */
+  .bldg-card {
+    background: var(--card); border-radius: var(--radius); padding: 14px;
+    margin-bottom: 10px; border: 1px solid var(--border); display: flex; gap: 12px; align-items: center;
   }
+  .bldg-thumb { width: 64px; height: 64px; border-radius: 8px; object-fit: cover; flex-shrink: 0; background: var(--bg); }
+  .bldg-info { flex: 1; }
+  .bldg-name { font-size: 15px; font-weight: 600; }
+  .bldg-data { font-size: 12px; color: var(--text2); margin-top: 4px; }
+  .bldg-rate { font-size: 20px; font-weight: 700; }
+  .bldg-rate.green { color: var(--success); }
+  .bldg-rate.orange { color: var(--warning); }
+  .bldg-rate.red { color: var(--danger); }
 
-  /* 隐藏文件输入 */
-  #fileInput { display: none; }
+  /* 折叠面板 */
+  .collapse { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 12px; }
+  .collapse-header {
+    padding: 12px 14px; background: var(--bg); cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 500;
+  }
+  .collapse-body { display: none; padding: 14px; background: var(--card); }
+  .collapse-body.open { display: block; }
+
+  /* 参数滑动条 */
+  .param-row { margin-bottom: 14px; }
+  .param-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text2); margin-bottom: 5px; }
+  input[type="range"] {
+    width: 100%; height: 5px; border-radius: 3px; background: var(--border);
+    outline: none; -webkit-appearance: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+    background: var(--primary); cursor: pointer;
+  }
 
   /* 底部操作栏 */
   .bottom-bar {
     position: fixed; bottom: 0; left: 0; right: 0;
-    background: #1a1a2e; border-top: 1px solid #2a2a40;
-    padding: 12px 16px 24px; display: flex; gap: 10px;
-    max-width: 480px; margin: 0 auto;
+    background: var(--card); border-top: 1px solid var(--border);
+    padding: 10px 16px 24px; display: flex; gap: 10px;
+    max-width: 520px; margin: 0 auto; z-index: 100;
   }
   .bottom-bar .btn { margin: 0; flex: 1; }
 
   /* 加载 */
   .loading {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(15,15,26,0.95); display: none;
-    justify-content: center; align-items: center; flex-direction: column; z-index: 100;
+    background: rgba(255,255,255,0.92); display: none;
+    justify-content: center; align-items: center; flex-direction: column; z-index: 200;
   }
   .loading.active { display: flex; }
   .spinner {
-    width: 48px; height: 48px; border: 3px solid #2a2a40;
-    border-top-color: #667eea; border-radius: 50%;
-    animation: spin 1s linear infinite;
+    width: 40px; height: 40px; border: 3px solid var(--border);
+    border-top-color: var(--primary); border-radius: 50%;
+    animation: spin 0.8s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-text { margin-top: 16px; color: #8892b0; font-size: 14px; }
 
-  /* 报告模态框 */
-  .modal {
+  /* 删除确认模态框 */
+  .modal-overlay {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.9); display: none;
-    justify-content: center; align-items: center; z-index: 200; padding: 20px;
+    background: rgba(0,0,0,0.5); display: none; z-index: 300;
+    justify-content: center; align-items: center; padding: 20px;
   }
-  .modal.active { display: flex; }
-  .modal-content { max-width: 100%; max-height: 80vh; }
-  .modal-content img { max-width: 100%; max-height: 80vh; border-radius: 12px; }
-  .modal-close {
-    position: absolute; top: 16px; right: 16px;
-    background: rgba(255,255,255,0.1); color: #fff;
-    border: none; border-radius: 50%; width: 40px; height: 40px;
-    font-size: 20px; cursor: pointer;
+  .modal-overlay.active { display: flex; }
+  .modal-box {
+    background: var(--card); border-radius: var(--radius); padding: 24px;
+    max-width: 320px; width: 100%; text-align: center;
   }
-  .modal-tip { position: absolute; bottom: 30px; color: #fff; font-size: 14px; text-align: center; width: 100%; }
+  .modal-box h3 { font-size: 17px; margin-bottom: 8px; }
+  .modal-box p { font-size: 14px; color: var(--text2); margin-bottom: 20px; }
+  .modal-btns { display: flex; gap: 10px; }
 
-  /* 折叠面板 */
-  .collapse-header {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 14px 0; cursor: pointer; border-bottom: 1px solid #2a2a40;
+  /* 标签 */
+  .badge {
+    display: inline-block; padding: 3px 8px; border-radius: 6px;
+    font-size: 11px; font-weight: 500;
   }
-  .collapse-header span { font-size: 14px; color: #ccd6f6; font-weight: 500; }
-  .collapse-body { display: none; padding: 14px 0; }
-  .collapse-body.open { display: block; }
-  .collapse-arrow { transition: transform 0.2s; color: #8892b0; }
-  .collapse-arrow.open { transform: rotate(180deg); }
+  .badge-blue { background: var(--primary-light); color: var(--primary); }
+  .badge-green { background: #dcfce7; color: var(--success); }
+  .badge-orange { background: #fef3c7; color: var(--warning); }
 
-  .pb-80 { padding-bottom: 80px; }
+  /* Toast */
+  .toast {
+    position: fixed; top: 60px; left: 50%; transform: translateX(-50%) translateY(-20px);
+    background: rgba(0,0,0,0.8); color: #fff; padding: 10px 20px; border-radius: 8px;
+    font-size: 14px; z-index: 400; opacity: 0; transition: all 0.3s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .hidden { display: none !important; }
 </style>
 </head>
 <body>
 
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
 <!-- 加载 -->
-<div class="loading" id="loading"><div class="spinner"></div><div class="loading-text">处理中...</div></div>
+<div class="loading" id="loading"><div class="spinner"></div></div>
 
-<!-- 报告模态框 -->
-<div class="modal" id="reportModal">
-  <button class="modal-close" onclick="closeModal()">&times;</button>
-  <div class="modal-content" id="modalContent"></div>
-  <div class="modal-tip">长按图片保存到相册</div>
-</div>
-
-<!-- 页面1: 上传 -->
-<div class="page active" id="page1">
-  <div class="header">
-    <h1>🏢 楼房入住率检测</h1>
-    <p>拍照 → 检测亮灯 → 估算入住率</p>
-  </div>
-
-  <div class="card">
-    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-      <div class="upload-icon">📷</div>
-      <div class="upload-text">点击拍照或选择照片</div>
-      <div class="upload-hint">支持 JPG / PNG 格式</div>
+<!-- 删除确认模态框 -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-box">
+    <h3>确认删除？</h3>
+    <p id="deleteModalText">删除后数据无法恢复</p>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeDeleteModal()">取消</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">删除</button>
     </div>
-    <input type="file" id="fileInput" accept="image/*" capture="environment" onchange="handleFile(event)">
-  </div>
-
-  <div class="card">
-    <div class="card-title">📸 拍摄建议</div>
-    <p style="font-size:13px;color:#8892b0;line-height:1.8;">
-      1. 天黑后 1~2 小时拍摄效果最佳<br>
-      2. 尽量正对楼栋，减少倾斜角度<br>
-      3. 避免路灯、车灯直射镜头<br>
-      4. 确保整栋楼在画面中完整呈现
-    </p>
   </div>
 </div>
 
-<!-- 页面2: 参数与检测 -->
-<div class="page pb-80" id="page2">
-  <div class="header"><h1>参数设置</h1></div>
+<!-- ==================== 页面1: 首页（调查列表） ==================== -->
+<div class="page active" id="pageHome">
+  <div class="nav-bar">
+    <div style="width:36px"></div>
+    <h2>小区入住率调查</h2>
+    <div style="width:36px"></div>
+  </div>
+  <div class="container">
+    <div class="card" style="background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; border: none;">
+      <div style="font-size: 22px; font-weight: 700; margin-bottom: 6px;">🏢 小区亮灯率调查</div>
+      <div style="font-size: 14px; opacity: 0.9;">拍照 → 检测亮灯 → 汇总入住率</div>
+    </div>
 
-  <div class="card">
-    <div class="canvas-container">
-      <img id="previewImg" class="img-preview" style="display:none;">
-      <canvas id="mainCanvas" style="display:none;"></canvas>
+    <button class="btn btn-primary" onclick="createSurvey()" style="margin-bottom: 16px;">
+      + 创建新调查
+    </button>
+
+    <div class="card-title" style="padding: 0 4px;">📋 调查记录</div>
+    <div id="surveyList"></div>
+
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <div class="icon">📋</div>
+      <p>还没有调查记录</p>
+      <p style="font-size: 12px; color: var(--text2);">点击上方按钮创建第一个调查任务</p>
     </div>
   </div>
-
-  <div class="card">
-    <div class="collapse-header" onclick="toggleCollapse(this)">
-      <span>⚙️ 检测参数</span>
-      <span class="collapse-arrow">▼</span>
-    </div>
-    <div class="collapse-body open">
-      <div class="param-row">
-        <div class="param-label"><span>亮灯亮度阈值</span><span id="val-threshold">180</span></div>
-        <input type="range" id="threshold" min="50" max="250" value="180" oninput="updateVal('threshold', this.value); debounceDetect();">
-      </div>
-      <div class="param-row">
-        <div class="param-label"><span>最小区域面积</span><span id="val-minArea">50</span></div>
-        <input type="range" id="minArea" min="10" max="500" value="50" oninput="updateVal('minArea', this.value); debounceDetect();">
-      </div>
-      <div class="param-row">
-        <div class="param-label"><span>最大区域面积</span><span id="val-maxArea">3000</span></div>
-        <input type="range" id="maxArea" min="500" max="10000" value="3000" oninput="updateVal('maxArea', this.value); debounceDetect();">
-      </div>
-      <div class="param-row">
-        <div class="param-label"><span>去噪模糊程度</span><span id="val-blur">3</span></div>
-        <input type="range" id="blur" min="1" max="15" step="2" value="3" oninput="updateVal('blur', this.value); debounceDetect();">
-      </div>
-      <div class="param-row">
-        <div class="param-label"><span>楼层判定间距</span><span id="val-floorTh">0.020</span></div>
-        <input type="range" id="floorTh" min="5" max="50" value="20" oninput="updateVal('floorTh', (this.value/1000).toFixed(3)); debounceDetect();">
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="collapse-header" onclick="toggleCollapse(this)">
-      <span>🏠 楼栋信息</span>
-      <span class="collapse-arrow">▼</span>
-    </div>
-    <div class="collapse-body">
-      <div class="param-row">
-        <div class="param-label"><span>楼栋名称</span></div>
-        <input type="text" id="buildingName" value="1号楼" placeholder="如：1号楼">
-      </div>
-      <div class="param-row">
-        <div class="param-label"><span>总楼层数</span></div>
-        <input type="number" id="floorCount" value="18" min="1">
-      </div>
-      <div class="param-row">
-        <div class="param-label"><span>每层户数</span></div>
-        <input type="number" id="unitsPerFloor" value="2" min="1">
-      </div>
-    </div>
-  </div>
-
-  <div style="height:20px;"></div>
 </div>
 
-<!-- 页面3: 结果 -->
-<div class="page pb-80" id="page3">
-  <div class="header"><h1>检测结果</h1></div>
+<!-- ==================== 页面2: 创建调查 ==================== -->
+<div class="page" id="pageCreate">
+  <div class="nav-bar">
+    <button class="back-btn" onclick="showPage('pageHome')">←</button>
+    <h2>创建调查</h2>
+    <div style="width:36px"></div>
+  </div>
+  <div class="container">
+    <div class="card">
+      <div class="card-title">📝 调查信息</div>
+      <div class="input-row">
+        <label class="input-label">小区名称</label>
+        <input type="text" id="newSurveyName" placeholder="如：禹洲御湖郡">
+      </div>
+      <div class="input-row">
+        <label class="input-label">预计楼栋数（可选）</label>
+        <input type="number" id="newSurveyTotal" placeholder="如：39" min="1">
+      </div>
+    </div>
 
-  <div class="card">
-    <div class="canvas-container">
-      <canvas id="resultCanvas"></canvas>
+    <div class="card">
+      <div class="card-sub">💡 提示：楼栋信息可以现场拍摄时再填写</div>
+    </div>
+
+    <div class="bottom-bar">
+      <button class="btn btn-secondary" onclick="showPage('pageHome')">取消</button>
+      <button class="btn btn-primary" onclick="saveNewSurvey()">开始调查</button>
     </div>
   </div>
-
-  <div class="metrics">
-    <div class="metric">
-      <div class="metric-value" id="metricTotal">--</div>
-      <div class="metric-label">总户数</div>
-    </div>
-    <div class="metric">
-      <div class="metric-value highlight" id="metricFloors">--</div>
-      <div class="metric-label">亮灯楼层</div>
-    </div>
-    <div class="metric">
-      <div class="metric-value" id="metricOccupied">--</div>
-      <div class="metric-label">估算入住户</div>
-    </div>
-    <div class="metric">
-      <div class="metric-value warn" id="metricRate">--</div>
-      <div class="metric-label">入住率</div>
-    </div>
-  </div>
-
-  <div class="card" id="floorDetailCard" style="display:none;">
-    <div class="card-title">🏠 亮灯楼层详情</div>
-    <div id="floorTags"></div>
-  </div>
-
-  <div style="height:20px;"></div>
 </div>
 
-<!-- 底部操作栏 -->
-<div class="bottom-bar" id="bottomBar" style="display:none;">
-  <button class="btn btn-secondary" onclick="goBack()">返回</button>
-  <button class="btn btn-primary" id="actionBtn" onclick="doAction()">开始检测</button>
+<!-- ==================== 页面3: 拍摄页 ==================== -->
+<div class="page" id="pageCapture">
+  <div class="nav-bar">
+    <button class="back-btn" onclick="showPage('pageHome')">←</button>
+    <h2 id="captureTitle">拍摄中</h2>
+    <div style="width:36px"></div>
+  </div>
+  <div class="container">
+    <!-- 进度 -->
+    <div class="card" style="padding: 14px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <span style="font-size: 13px; font-weight: 500;">📊 调查进度</span>
+        <span style="font-size: 13px; color: var(--text2);" id="progressText">0 / 0 栋</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+
+    <!-- 已拍楼栋速览 -->
+    <div id="shotPreview" class="hidden">
+      <div class="card-title" style="padding: 0 4px; font-size: 13px;">已拍楼栋（点击可编辑）</div>
+      <div id="shotList" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px;"></div>
+    </div>
+
+    <!-- 拍照区 -->
+    <div class="card">
+      <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+        <div class="upload-icon">📷</div>
+        <div class="upload-text">点击拍照或选择照片</div>
+        <div class="upload-hint">请拍摄整栋楼的正面夜景</div>
+      </div>
+      <input type="file" id="fileInput" accept="image/*" capture="environment" style="display:none" onchange="handleFile(event)">
+      <div id="photoPreviewBox" class="hidden" style="margin-top: 12px;">
+        <canvas id="previewCanvas"></canvas>
+      </div>
+    </div>
+
+    <!-- 楼栋信息 -->
+    <div class="card" id="buildingInfoCard" style="display:none;">
+      <div class="card-title">🏠 楼栋信息</div>
+      <div class="input-row">
+        <label class="input-label">楼栋编号</label>
+        <input type="text" id="bldgName" placeholder="如：1号楼">
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div class="input-row">
+          <label class="input-label">总楼层</label>
+          <input type="number" id="bldgFloors" placeholder="18" min="1">
+        </div>
+        <div class="input-row">
+          <label class="input-label">每层户数</label>
+          <input type="number" id="bldgUnits" placeholder="2" min="1">
+        </div>
+      </div>
+      <div class="quick-btns" id="quickBtns" style="margin-top: 8px;"></div>
+      <div id="detectResultPreview" style="margin-top: 12px; padding: 10px; background: var(--bg); border-radius: 10px; display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 13px;">🎯 检测：亮灯 <b id="previewLitFloors">--</b> 层</span>
+          <span class="badge badge-blue" id="previewRate">--%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 高级参数（折叠） -->
+    <div class="collapse" id="advParams">
+      <div class="collapse-header" onclick="toggleCollapse(this)">
+        <span>⚙️ 高级参数</span>
+        <span style="color: var(--text2);">▼</span>
+      </div>
+      <div class="collapse-body">
+        <div class="param-row">
+          <div class="param-label"><span>亮度阈值</span><span id="val-threshold">180</span></div>
+          <input type="range" id="threshold" min="50" max="250" value="180" oninput="updateVal('threshold', this.value); debounceDetect();">
+        </div>
+        <div class="param-row">
+          <div class="param-label"><span>最小区域</span><span id="val-minArea">50</span></div>
+          <input type="range" id="minArea" min="10" max="500" value="50" oninput="updateVal('minArea', this.value); debounceDetect();">
+        </div>
+        <div class="param-row">
+          <div class="param-label"><span>最大区域</span><span id="val-maxArea">3000</span></div>
+          <input type="range" id="maxArea" min="500" max="10000" value="3000" oninput="updateVal('maxArea', this.value); debounceDetect();">
+        </div>
+        <div class="param-row">
+          <div class="param-label"><span>去噪模糊</span><span id="val-blur">3</span></div>
+          <input type="range" id="blur" min="1" max="15" step="2" value="3" oninput="updateVal('blur', this.value); debounceDetect();">
+        </div>
+        <div class="param-row">
+          <div class="param-label"><span>楼层间距</span><span id="val-floorTh">0.020</span></div>
+          <input type="range" id="floorTh" min="5" max="50" value="20" oninput="updateVal('floorTh', (this.value/1000).toFixed(3)); debounceDetect();">
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 20px;"></div>
+  </div>
+
+  <div class="bottom-bar">
+    <button class="btn btn-secondary" onclick="finishSurvey()">完成</button>
+    <button class="btn btn-primary" id="saveBldgBtn" onclick="saveBuilding()" disabled>保存本栋</button>
+  </div>
+</div>
+
+<!-- ==================== 页面4: 汇总页 ==================== -->
+<div class="page" id="pageSummary">
+  <div class="nav-bar">
+    <button class="back-btn" onclick="showPage('pageHome')">←</button>
+    <h2 id="summaryTitle">调查结果</h2>
+    <div style="width:36px"></div>
+  </div>
+  <div class="container" id="summaryContent">
+    <!-- 动态生成 -->
+  </div>
+  <div class="bottom-bar">
+    <button class="btn btn-secondary" onclick="continueSurvey()">继续拍摄</button>
+    <button class="btn btn-primary" onclick="exportSummary()">导出汇总</button>
+  </div>
 </div>
 
 <script>
-// ===================== 全局状态 =====================
-let originalImage = null;
-let originalImageData = null;
-let detections = [];
-let floorDict = {};
-let currentPage = 1;
+// ===================== 数据层 =====================
+const DB_KEY = 'occupancy_surveys_v1';
+let surveys = [];
+let currentSurveyId = null;
+let currentBuildingData = null; // 当前正在处理的照片数据
+let deleteTargetId = null;
 let debounceTimer = null;
 
+function loadSurveys() {
+  try {
+    const data = localStorage.getItem(DB_KEY);
+    if (data) surveys = JSON.parse(data);
+  } catch (e) { surveys = []; }
+}
+
+function saveSurveys() {
+  localStorage.setItem(DB_KEY, JSON.stringify(surveys));
+}
+
+function genId() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+}
+
+// ===================== Toast =====================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
 // ===================== 页面导航 =====================
-function showPage(n) {
+function showPage(pageId) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page' + n).classList.add('active');
-  currentPage = n;
-  const bar = document.getElementById('bottomBar');
-  const btn = document.getElementById('actionBtn');
+  document.getElementById(pageId).classList.add('active');
+  window.scrollTo(0, 0);
 
-  if (n === 1) { bar.style.display = 'none'; }
-  else if (n === 2) {
-    bar.style.display = 'flex';
-    btn.textContent = '开始检测';
-    btn.className = 'btn btn-primary';
-    btn.onclick = () => runDetection();
-  }
-  else if (n === 3) {
-    bar.style.display = 'flex';
-    btn.textContent = '保存报告';
-    btn.className = 'btn btn-success';
-    btn.onclick = () => generateAndShowReport();
-  }
-}
-function goBack() {
-  if (currentPage === 3) showPage(2);
-  else if (currentPage === 2) showPage(1);
+  if (pageId === 'pageHome') renderSurveyList();
 }
 
-// ===================== 文件处理 =====================
+// ===================== 首页 =====================
+function renderSurveyList() {
+  loadSurveys();
+  const list = document.getElementById('surveyList');
+  const empty = document.getElementById('emptyState');
+
+  if (!surveys.length) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  // 按时间倒序
+  const sorted = [...surveys].sort((a, b) => b.updatedAt - a.updatedAt);
+
+  list.innerHTML = sorted.map(s => {
+    const bCount = s.buildings?.length || 0;
+    const totalB = s.totalBuildings || bCount;
+    const avgRate = bCount > 0 ? calcAvgRate(s.buildings) : 0;
+    const dateStr = fmtDate(s.updatedAt);
+    return `
+      <div class="list-item" onclick="openSurvey('${s.id}')">
+        <div class="list-icon">🏢</div>
+        <div class="list-info">
+          <div class="list-title">${esc(s.name)}</div>
+          <div class="list-meta">${dateStr} · ${bCount}/${totalB}栋 · 平均入住率 ${avgRate.toFixed(1)}%</div>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          ${bCount >= totalB ? '<span class="badge badge-green">已完成</span>' : ''}
+          <span class="list-arrow">›</span>
+        </div>
+      </div>
+      <div style="text-align: right; margin-top: -6px; margin-bottom: 10px; padding-right: 4px;">
+        <button class="btn btn-sm btn-secondary" style="font-size: 12px; padding: 4px 10px;" onclick="event.stopPropagation(); showDeleteModal('${s.id}')">删除</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function calcAvgRate(buildings) {
+  if (!buildings?.length) return 0;
+  const totalUnits = buildings.reduce((s, b) => s + (b.totalUnits || 0), 0);
+  const occupied = buildings.reduce((s, b) => s + (b.occupiedUnits || 0), 0);
+  return totalUnits > 0 ? (occupied / totalUnits * 100) : 0;
+}
+
+function fmtDate(ts) {
+  const d = new Date(ts);
+  return `${d.getMonth()+1}月${d.getDate()}日 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+function esc(s) {
+  const div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+
+// ===================== 创建调查 =====================
+function createSurvey() {
+  document.getElementById('newSurveyName').value = '';
+  document.getElementById('newSurveyTotal').value = '';
+  showPage('pageCreate');
+}
+
+function saveNewSurvey() {
+  const name = document.getElementById('newSurveyName').value.trim();
+  if (!name) { showToast('请输入小区名称'); return; }
+
+  const survey = {
+    id: genId(),
+    name: name,
+    totalBuildings: parseInt(document.getElementById('newSurveyTotal').value) || 0,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    buildings: []
+  };
+
+  surveys.push(survey);
+  saveSurveys();
+  openSurvey(survey.id);
+}
+
+// ===================== 删除 =====================
+function showDeleteModal(id) {
+  deleteTargetId = id;
+  const s = surveys.find(x => x.id === id);
+  document.getElementById('deleteModalText').textContent = `确定删除「${s?.name || ''}」的调查记录？`;
+  document.getElementById('deleteModal').classList.add('active');
+}
+function closeDeleteModal() {
+  document.getElementById('deleteModal').classList.remove('active');
+  deleteTargetId = null;
+}
+function confirmDelete() {
+  if (deleteTargetId) {
+    surveys = surveys.filter(s => s.id !== deleteTargetId);
+    saveSurveys();
+    renderSurveyList();
+    showToast('已删除');
+  }
+  closeDeleteModal();
+}
+
+// ===================== 打开调查（拍摄页） =====================
+function openSurvey(id) {
+  currentSurveyId = id;
+  const s = surveys.find(x => x.id === id);
+  if (!s) return;
+
+  document.getElementById('captureTitle').textContent = s.name;
+  resetCapturePage();
+  updateProgress();
+  renderShotList();
+  showPage('pageCapture');
+}
+
+function resetCapturePage() {
+  document.getElementById('uploadArea').classList.remove('hidden');
+  document.getElementById('photoPreviewBox').classList.add('hidden');
+  document.getElementById('buildingInfoCard').style.display = 'none';
+  document.getElementById('saveBldgBtn').disabled = true;
+  currentBuildingData = null;
+
+  // 尝试复用上一条
+  const s = surveys.find(x => x.id === currentSurveyId);
+  const last = s?.buildings?.[s.buildings.length - 1];
+  if (last) {
+    document.getElementById('bldgFloors').value = last.floorCount;
+    document.getElementById('bldgUnits').value = last.unitsPerFloor;
+    // 楼栋号自动+1
+    const lastName = last.name;
+    const m = lastName.match(/(\d+)/);
+    if (m) {
+      const nextNum = parseInt(m[1]) + 1;
+      document.getElementById('bldgName').value = lastName.replace(m[1], nextNum);
+    } else {
+      document.getElementById('bldgName').value = '';
+    }
+  } else {
+    document.getElementById('bldgName').value = '';
+    document.getElementById('bldgFloors').value = '';
+    document.getElementById('bldgUnits').value = '';
+  }
+
+  // 生成快捷按钮
+  renderQuickBtns();
+}
+
+function renderQuickBtns() {
+  const s = surveys.find(x => x.id === currentSurveyId);
+  const used = s?.buildings || [];
+  const usedNames = new Set(used.map(b => b.name));
+  const quickNames = [];
+  for (let i = 1; i <= (s?.totalBuildings || 20); i++) {
+    const n = i + '号楼';
+    if (!usedNames.has(n)) quickNames.push(n);
+  }
+
+  const container = document.getElementById('quickBtns');
+  if (quickNames.length === 0) { container.innerHTML = ''; return; }
+
+  container.innerHTML = '<span style="font-size: 12px; color: var(--text2); width: 100%; margin-bottom: 4px;">快速选择：</span>' +
+    quickNames.slice(0, 8).map(n =>
+      `<button class="quick-btn" onclick="setBldgName('${n}')">${n}</button>`
+    ).join('');
+}
+
+function setBldgName(name) {
+  document.getElementById('bldgName').value = name;
+}
+
+function updateProgress() {
+  const s = surveys.find(x => x.id === currentSurveyId);
+  const done = s?.buildings?.length || 0;
+  const total = s?.totalBuildings || Math.max(done, 1);
+  document.getElementById('progressText').textContent = `${done} / ${total} 栋`;
+  document.getElementById('progressFill').style.width = `${Math.min(100, (done / total * 100))}%`;
+}
+
+function renderShotList() {
+  const s = surveys.find(x => x.id === currentSurveyId);
+  const list = s?.buildings || [];
+  const container = document.getElementById('shotList');
+  const wrapper = document.getElementById('shotPreview');
+
+  if (!list.length) { wrapper.classList.add('hidden'); return; }
+  wrapper.classList.remove('hidden');
+
+  container.innerHTML = list.map((b, i) => `
+    <div style="flex-shrink: 0; text-align: center; cursor: pointer;" onclick="editBuilding(${i})">
+      <div style="width: 64px; height: 64px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); background: var(--bg);">
+        ${b.annotatedData ? `<img src="${b.annotatedData}" style="width:100%; height:100%; object-fit:cover;">` : `<div style="padding-top:20px; font-size:20px;">🏢</div>`}
+      </div>
+      <div style="font-size: 11px; margin-top: 4px; color: var(--text2);">${esc(b.name)}</div>
+      <div style="font-size: 11px; color: var(--primary); font-weight: 600;">${b.rate?.toFixed(0) || '--'}%</div>
+    </div>
+  `).join('');
+}
+
+// ===================== 文件处理 & 检测 =====================
 function handleFile(e) {
   const file = e.target.files[0];
   if (!file) return;
+
+  showLoading(true);
   const reader = new FileReader();
   reader.onload = function(evt) {
     const img = new Image();
     img.onload = function() {
-      originalImage = img;
-      // 显示预览
-      const preview = document.getElementById('previewImg');
-      preview.src = img.src;
-      preview.style.display = 'block';
-      document.getElementById('mainCanvas').style.display = 'none';
+      // 压缩图片，最长边800
+      const maxDim = 800;
+      let w = img.width, h = img.height;
+      if (w > maxDim || h > maxDim) {
+        const scale = maxDim / Math.max(w, h);
+        w = Math.round(w * scale);
+        h = Math.round(h * scale);
+      }
 
-      // 初始化canvas（限制最大宽度800）
-      const canvas = document.getElementById('mainCanvas');
-      const scale = Math.min(1, 800 / img.width);
-      canvas.width = img.width * scale;
-      canvas.height = img.height * scale;
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
       const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, w, h);
 
-      showPage(2);
-      // 默认展开检测参数
-      setTimeout(() => runDetection(), 300);
+      const imgData = ctx.getImageData(0, 0, w, h);
+
+      // 执行检测
+      runDetectionCore(imgData, w, h);
+
+      // 显示预览
+      const previewCanvas = document.getElementById('previewCanvas');
+      previewCanvas.width = w; previewCanvas.height = h;
+      const pctx = previewCanvas.getContext('2d');
+      pctx.putImageData(imgData, 0, 0);
+      drawAnnotations(pctx, w, h);
+
+      // 保存当前数据
+      currentBuildingData = {
+        originalData: imgData,
+        width: w, height: h,
+        detections: detections,
+        floorDict: floorDict,
+        photoData: canvas.toDataURL('image/jpeg', 0.85)
+      };
+
+      // 显示结果
+      document.getElementById('uploadArea').classList.add('hidden');
+      document.getElementById('photoPreviewBox').classList.remove('hidden');
+      document.getElementById('buildingInfoCard').style.display = 'block';
+      document.getElementById('saveBldgBtn').disabled = false;
+
+      updatePreviewResult();
+      showLoading(false);
     };
     img.src = evt.target.result;
   };
   reader.readAsDataURL(file);
+  e.target.value = ''; // 允许重复选同一张
 }
 
-// ===================== 参数更新 =====================
+function updatePreviewResult() {
+  if (!currentBuildingData) return;
+  const floors = parseInt(document.getElementById('bldgFloors').value) || 1;
+  const units = parseInt(document.getElementById('bldgUnits').value) || 1;
+  const litFloors = Object.keys(currentBuildingData.floorDict).length;
+  const occupied = litFloors * units;
+  const rate = floors * units > 0 ? (occupied / (floors * units) * 100) : 0;
+
+  document.getElementById('previewLitFloors').textContent = litFloors;
+  document.getElementById('previewRate').textContent = rate.toFixed(1) + '%';
+  document.getElementById('detectResultPreview').style.display = 'block';
+}
+
+// 监听楼栋信息输入变化
+['bldgFloors', 'bldgUnits'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input', updatePreviewResult);
+});
+
 function updateVal(id, val) {
   document.getElementById('val-' + id).textContent = val;
 }
 function debounceDetect() {
   clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => runDetection(), 300);
+  debounceTimer = setTimeout(() => {
+    if (currentBuildingData) reDetect();
+  }, 300);
 }
 function toggleCollapse(el) {
-  const body = el.nextElementSibling;
-  const arrow = el.querySelector('.collapse-arrow');
-  body.classList.toggle('open');
-  arrow.classList.toggle('open');
+  el.nextElementSibling.classList.toggle('open');
 }
 
-// ===================== 核心检测算法 =====================
-function runDetection() {
-  if (!originalImageData) return;
+function reDetect() {
+  if (!currentBuildingData) return;
   showLoading(true);
-
   setTimeout(() => {
-    const canvas = document.getElementById('mainCanvas');
-    const w = canvas.width, h = canvas.height;
+    runDetectionCore(currentBuildingData.originalData, currentBuildingData.width, currentBuildingData.height);
+    currentBuildingData.detections = detections;
+    currentBuildingData.floorDict = floorDict;
 
-    const threshold = parseInt(document.getElementById('threshold').value);
-    const minArea = parseInt(document.getElementById('minArea').value);
-    const maxArea = parseInt(document.getElementById('maxArea').value);
-    const blurRadius = parseInt(document.getElementById('blur').value);
-    const floorTh = parseFloat(document.getElementById('val-floorTh').textContent);
+    // 重绘预览
+    const previewCanvas = document.getElementById('previewCanvas');
+    const pctx = previewCanvas.getContext('2d');
+    pctx.putImageData(currentBuildingData.originalData, 0, 0);
+    drawAnnotations(pctx, currentBuildingData.width, currentBuildingData.height);
 
-    // 1. 灰度化 + 模糊
-    let gray = toGrayscale(originalImageData.data, w, h);
-    if (blurRadius > 1) {
-      gray = boxBlur(gray, w, h, blurRadius);
-    }
-
-    // 2. 阈值分割
-    const mask = new Uint8Array(w * h);
-    for (let i = 0; i < w * h; i++) {
-      mask[i] = gray[i] > threshold ? 255 : 0;
-    }
-
-    // 3. 形态学开运算（去噪）
-    morphOpen(mask, w, h);
-
-    // 4. 连通区域标记
-    detections = findConnectedComponents(mask, w, h, minArea, maxArea);
-
-    // 5. 楼层聚类
-    const result = clusterFloors(detections, h, floorTh);
-    floorDict = result.floors;
-
-    // 6. 计算统计
-    const floorCount = parseInt(document.getElementById('floorCount').value) || 1;
-    const unitsPerFloor = parseInt(document.getElementById('unitsPerFloor').value) || 1;
-    const totalUnits = floorCount * unitsPerFloor;
-    const litFloors = Object.keys(floorDict).length;
-    const occupiedUnits = litFloors * unitsPerFloor;
-    const rate = totalUnits > 0 ? (occupiedUnits / totalUnits * 100) : 0;
-
-    // 7. 绘制结果
-    drawResult(originalImageData, w, h, detections, floorDict);
-
-    // 8. 更新UI
-    document.getElementById('metricTotal').textContent = totalUnits;
-    document.getElementById('metricFloors').textContent = litFloors;
-    document.getElementById('metricOccupied').textContent = occupiedUnits;
-    document.getElementById('metricRate').textContent = rate.toFixed(1) + '%';
-
-    // 楼层标签
-    const tagsContainer = document.getElementById('floorTags');
-    tagsContainer.innerHTML = '';
-    const colors = ['#38ef7d','#667eea','#f6ad55','#fc8181','#63b3ed','#b794f4'];
-    Object.keys(floorDict).forEach((fidx, i) => {
-      const span = document.createElement('span');
-      span.className = 'floor-tag';
-      span.style.background = colors[i % colors.length] + '22';
-      span.style.color = colors[i % colors.length];
-      span.style.border = '1px solid ' + colors[i % colors.length] + '44';
-      span.textContent = `第${fidx}层 (${floorDict[fidx].length}窗)`;
-      tagsContainer.appendChild(span);
-    });
-    document.getElementById('floorDetailCard').style.display = litFloors > 0 ? 'block' : 'none';
-
+    updatePreviewResult();
     showLoading(false);
-    showPage(3);
   }, 50);
 }
 
-// ===================== 图像处理函数 =====================
+// ===================== 核心检测算法（保留原版）=====================
+let detections = [];
+let floorDict = {};
+
+function runDetectionCore(imgData, w, h) {
+  const threshold = parseInt(document.getElementById('threshold').value);
+  const minArea = parseInt(document.getElementById('minArea').value);
+  const maxArea = parseInt(document.getElementById('maxArea').value);
+  const blurRadius = parseInt(document.getElementById('blur').value);
+  const floorTh = parseFloat(document.getElementById('val-floorTh').textContent);
+
+  let gray = toGrayscale(imgData.data, w, h);
+  if (blurRadius > 1) gray = boxBlur(gray, w, h, blurRadius);
+
+  const mask = new Uint8Array(w * h);
+  for (let i = 0; i < w * h; i++) mask[i] = gray[i] > threshold ? 255 : 0;
+
+  morphOpen(mask, w, h);
+  detections = findConnectedComponents(mask, w, h, minArea, maxArea, imgData);
+
+  const result = clusterFloors(detections, h, floorTh);
+  floorDict = result.floors;
+}
+
+function drawAnnotations(ctx, w, h) {
+  const colors = ['#16a34a','#2563eb','#d97706','#dc2626','#0891b2','#7c3aed'];
+
+  Object.keys(floorDict).forEach((fidx, fi) => {
+    const c = colors[fi % colors.length];
+    ctx.strokeStyle = c; ctx.lineWidth = 2;
+    ctx.fillStyle = c;
+    floorDict[fidx].forEach(det => {
+      ctx.strokeRect(det.x, det.y, det.w, det.h);
+      const label = `F${fidx}`;
+      const tw = ctx.measureText(label).width;
+      ctx.fillRect(det.x, det.y - 14, tw + 4, 14);
+      ctx.fillStyle = '#fff'; ctx.font = '10px sans-serif';
+      ctx.fillText(label, det.x + 2, det.y - 3);
+      ctx.fillStyle = c;
+    });
+  });
+}
+
+// 图像处理函数
 function toGrayscale(data, w, h) {
   const gray = new Uint8Array(w * h);
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const i = (y * w + x) * 4;
-      gray[y * w + x] = Math.round(0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2]);
-    }
+  for (let i = 0; i < w * h; i++) {
+    gray[i] = Math.round(0.299 * data[i*4] + 0.587 * data[i*4+1] + 0.114 * data[i*4+2]);
   }
   return gray;
 }
-
 function boxBlur(src, w, h, radius) {
   const dst = new Uint8Array(w * h);
   const r = Math.floor(radius / 2);
-  // 水平
-  for (let y = 0; y < h; y++) {
+  for (let y = 0; y < h; y++)
     for (let x = 0; x < w; x++) {
       let sum = 0, count = 0;
-      for (let dx = -r; dx <= r; dx++) {
-        const nx = Math.min(w-1, Math.max(0, x+dx));
-        sum += src[y*w+nx]; count++;
-      }
+      for (let dx = -r; dx <= r; dx++) { const nx = Math.min(w-1, Math.max(0, x+dx)); sum += src[y*w+nx]; count++; }
       dst[y*w+x] = sum / count;
     }
-  }
-  // 垂直
   const final = new Uint8Array(w * h);
-  for (let y = 0; y < h; y++) {
+  for (let y = 0; y < h; y++)
     for (let x = 0; x < w; x++) {
       let sum = 0, count = 0;
-      for (let dy = -r; dy <= r; dy++) {
-        const ny = Math.min(h-1, Math.max(0, y+dy));
-        sum += dst[ny*w+x]; count++;
-      }
+      for (let dy = -r; dy <= r; dy++) { const ny = Math.min(h-1, Math.max(0, y+dy)); sum += dst[ny*w+x]; count++; }
       final[y*w+x] = sum / count;
     }
-  }
   return final;
 }
-
 function morphOpen(mask, w, h) {
   const temp = new Uint8Array(w * h);
-  // erode
-  for (let y = 1; y < h-1; y++) {
-    for (let x = 1; x < w-1; x++) {
-      let minv = 255;
-      for (let dy = -1; dy <= 1; dy++) {
-        for (let dx = -1; dx <= 1; dx++) {
-          minv = Math.min(minv, mask[(y+dy)*w+(x+dx)]);
-        }
-      }
-      temp[y*w+x] = minv;
-    }
+  for (let y = 1; y < h-1; y++) for (let x = 1; x < w-1; x++) {
+    let minv = 255;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++)
+      minv = Math.min(minv, mask[(y+dy)*w+(x+dx)]);
+    temp[y*w+x] = minv;
   }
-  // dilate
-  for (let y = 1; y < h-1; y++) {
-    for (let x = 1; x < w-1; x++) {
-      let maxv = 0;
-      for (let dy = -1; dy <= 1; dy++) {
-        for (let dx = -1; dx <= 1; dx++) {
-          maxv = Math.max(maxv, temp[(y+dy)*w+(x+dx)]);
-        }
-      }
-      mask[y*w+x] = maxv;
-    }
+  for (let y = 1; y < h-1; y++) for (let x = 1; x < w-1; x++) {
+    let maxv = 0;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++)
+      maxv = Math.max(maxv, temp[(y+dy)*w+(x+dx)]);
+    mask[y*w+x] = maxv;
   }
 }
-
-function findConnectedComponents(mask, w, h, minArea, maxArea) {
+function findConnectedComponents(mask, w, h, minArea, maxArea, imgData) {
   const labels = new Int32Array(w * h);
   labels.fill(-1);
   let label = 0;
@@ -542,207 +877,322 @@ function findConnectedComponents(mask, w, h, minArea, maxArea) {
     for (let x = 0; x < w; x++) {
       const idx = y * w + x;
       if (mask[idx] === 255 && labels[idx] === -1) {
-        // BFS
         const queue = [idx];
         labels[idx] = label;
         let minX = x, maxX = x, minY = y, maxY = y;
-        let count = 0;
-        let brightSum = 0;
+        let count = 0, brightSum = 0;
 
         while (queue.length > 0) {
           const cur = queue.pop();
           const cy = Math.floor(cur / w), cx = cur % w;
           count++;
-          // 累加亮度（从原图获取）
           const pi = cur * 4;
-          brightSum += (originalImageData.data[pi] + originalImageData.data[pi+1] + originalImageData.data[pi+2]) / 3;
-
-          const dirs = [[-1,0],[1,0],[0,-1],[0,1]];
-          for (const [dx, dy] of dirs) {
+          brightSum += (imgData.data[pi] + imgData.data[pi+1] + imgData.data[pi+2]) / 3;
+          [[-1,0],[1,0],[0,-1],[0,1]].forEach(([dx, dy]) => {
             const nx = cx + dx, ny = cy + dy;
-            if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+            if (nx < 0 || nx >= w || ny < 0 || ny >= h) return;
             const nidx = ny * w + nx;
             if (mask[nidx] === 255 && labels[nidx] === -1) {
-              labels[nidx] = label;
-              queue.push(nidx);
-              minX = Math.min(minX, nx);
-              maxX = Math.max(maxX, nx);
-              minY = Math.min(minY, ny);
-              maxY = Math.max(maxY, ny);
+              labels[nidx] = label; queue.push(nidx);
+              minX = Math.min(minX, nx); maxX = Math.max(maxX, nx);
+              minY = Math.min(minY, ny); maxY = Math.max(maxY, ny);
             }
-          }
+          });
         }
 
-        const area = count;
-        if (minArea <= area && area <= maxArea) {
-          dets.push({
-            id: label + 1,
-            x: minX, y: minY,
-            w: maxX - minX + 1, h: maxY - minY + 1,
-            cx: Math.floor((minX + maxX) / 2),
-            cy: Math.floor((minY + maxY) / 2),
-            area: area,
-            brightness: brightSum / count
-          });
+        if (minArea <= count && count <= maxArea) {
+          dets.push({ id: label + 1, x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1,
+            cx: Math.floor((minX + maxX) / 2), cy: Math.floor((minY + maxY) / 2),
+            area: count, brightness: brightSum / count });
         }
         label++;
       }
     }
   }
-
-  // 重新编号
   dets.forEach((d, i) => d.id = i + 1);
   return dets;
 }
-
 function clusterFloors(detections, imgHeight, thresholdRatio) {
   if (!detections.length) return { floors: {}, count: 0 };
   const sorted = [...detections].sort((a, b) => a.cy - b.cy);
   const threshold = imgHeight * thresholdRatio;
   const floors = [];
   let current = [sorted[0]];
-
   for (let i = 1; i < sorted.length; i++) {
-    const firstY = current[0].cy;
-    if (Math.abs(sorted[i].cy - firstY) <= threshold) {
-      current.push(sorted[i]);
-    } else {
-      floors.push(current);
-      current = [sorted[i]];
-    }
+    if (Math.abs(sorted[i].cy - current[0].cy) <= threshold) current.push(sorted[i]);
+    else { floors.push(current); current = [sorted[i]]; }
   }
   floors.push(current);
-
   const floorDict = {};
   floors.forEach((f, i) => floorDict[i + 1] = f);
   return { floors: floorDict, count: floors.length };
 }
 
-// ===================== 绘制结果 =====================
-function drawResult(imgData, w, h, detections, floorDict) {
-  const canvas = document.getElementById('resultCanvas');
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext('2d');
+// ===================== 保存楼栋 =====================
+function saveBuilding() {
+  if (!currentBuildingData) { showToast('请先拍照'); return; }
+  const name = document.getElementById('bldgName').value.trim();
+  if (!name) { showToast('请输入楼栋编号'); return; }
 
-  // 原图
-  ctx.putImageData(imgData, 0, 0);
-
-  // 楼层色带
-  const floorColors = [
-    'rgba(56,239,125,0.12)','rgba(102,126,234,0.12)','rgba(246,173,85,0.12)',
-    'rgba(252,129,129,0.12)','rgba(99,179,237,0.12)','rgba(183,148,244,0.12)'
-  ];
-
-  Object.keys(floorDict).forEach((fidx, fi) => {
-    const dets = floorDict[fidx];
-    const ys = dets.map(d => d.cy);
-    const minY = Math.max(0, Math.min(...ys) - 15);
-    const maxY = Math.min(h, Math.max(...ys) + 15);
-    ctx.fillStyle = floorColors[fi % floorColors.length];
-    ctx.fillRect(0, minY, w, maxY - minY);
-  });
-
-  // 检测框
-  const strokeColors = ['#38ef7d','#667eea','#f6ad55','#fc8181','#63b3ed','#b794f4'];
-  Object.keys(floorDict).forEach((fidx, fi) => {
-    const c = strokeColors[fi % strokeColors.length];
-    ctx.strokeStyle = c;
-    ctx.lineWidth = 2;
-    ctx.fillStyle = c;
-    ctx.font = '11px sans-serif';
-
-    floorDict[fidx].forEach(det => {
-      ctx.strokeRect(det.x, det.y, det.w, det.h);
-      const label = `F${fidx}-${det.id}`;
-      const tw = ctx.measureText(label).width;
-      ctx.fillRect(det.x, det.y - 16, tw + 6, 16);
-      ctx.fillStyle = '#fff';
-      ctx.fillText(label, det.x + 3, det.y - 4);
-      ctx.fillStyle = c;
-    });
-  });
-}
-
-// ===================== 报告生成 =====================
-function generateAndShowReport() {
-  const building = document.getElementById('buildingName').value || '1号楼';
-  const floorCount = parseInt(document.getElementById('floorCount').value) || 1;
-  const unitsPerFloor = parseInt(document.getElementById('unitsPerFloor').value) || 1;
-  const totalUnits = floorCount * unitsPerFloor;
-  const litFloors = Object.keys(floorDict).length;
-  const occupied = litFloors * unitsPerFloor;
+  const floors = parseInt(document.getElementById('bldgFloors').value) || 1;
+  const units = parseInt(document.getElementById('bldgUnits').value) || 1;
+  const litFloors = Object.keys(currentBuildingData.floorDict).length;
+  const occupied = litFloors * units;
+  const totalUnits = floors * units;
   const rate = totalUnits > 0 ? (occupied / totalUnits * 100) : 0;
 
-  const srcCanvas = document.getElementById('resultCanvas');
-  const w = srcCanvas.width, h = srcCanvas.height;
-  const reportW = Math.max(w, 700);
-  const reportH = h + 220;
+  // 生成标注图
+  const canvas = document.createElement('canvas');
+  canvas.width = currentBuildingData.width;
+  canvas.height = currentBuildingData.height;
+  const ctx = canvas.getContext('2d');
+  ctx.putImageData(currentBuildingData.originalData, 0, 0);
+  drawAnnotations(ctx, currentBuildingData.width, currentBuildingData.height);
 
-  const rc = document.createElement('canvas');
-  rc.width = reportW;
-  rc.height = reportH;
-  const rctx = rc.getContext('2d');
+  const building = {
+    id: genId(),
+    name: name,
+    floorCount: floors,
+    unitsPerFloor: units,
+    totalUnits: totalUnits,
+    litFloors: litFloors,
+    occupiedUnits: occupied,
+    rate: rate,
+    photoData: currentBuildingData.photoData,
+    annotatedData: canvas.toDataURL('image/jpeg', 0.7),
+    params: {
+      threshold: parseInt(document.getElementById('threshold').value),
+      minArea: parseInt(document.getElementById('minArea').value),
+      maxArea: parseInt(document.getElementById('maxArea').value),
+      blur: parseInt(document.getElementById('blur').value),
+      floorTh: parseFloat(document.getElementById('val-floorTh').textContent)
+    },
+    timestamp: Date.now()
+  };
+
+  const s = surveys.find(x => x.id === currentSurveyId);
+  if (s) {
+    s.buildings.push(building);
+    s.updatedAt = Date.now();
+    saveSurveys();
+  }
+
+  showToast(`✅ ${name} 已保存`);
+  resetCapturePage();
+  updateProgress();
+  renderShotList();
+}
+
+// ===================== 完成调查 =====================
+function finishSurvey() {
+  const s = surveys.find(x => x.id === currentSurveyId);
+  if (s && s.buildings.length > 0) {
+    showSummary();
+  } else {
+    showToast('还没有拍摄数据');
+  }
+}
+
+// ===================== 汇总页 =====================
+function showSummary(surveyId) {
+  const id = surveyId || currentSurveyId;
+  const s = surveys.find(x => x.id === id);
+  if (!s || !s.buildings.length) { showToast('没有数据'); return; }
+
+  document.getElementById('summaryTitle').textContent = s.name + ' 调查结果';
+  currentSurveyId = id;
+
+  const totalB = s.buildings.length;
+  const totalUnits = s.buildings.reduce((sum, b) => sum + b.totalUnits, 0);
+  const occupied = s.buildings.reduce((sum, b) => sum + b.occupiedUnits, 0);
+  const avgRate = totalUnits > 0 ? (occupied / totalUnits * 100) : 0;
+
+  // 排序：按入住率降序
+  const sorted = [...s.buildings].sort((a, b) => b.rate - a.rate);
+
+  document.getElementById('summaryContent').innerHTML = `
+    <div class="card" style="background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; border: none;">
+      <div style="text-align: center;">
+        <div style="font-size: 14px; opacity: 0.9;">小区整体估算入住率</div>
+        <div style="font-size: 48px; font-weight: 700; margin: 8px 0;">${avgRate.toFixed(1)}%</div>
+        <div style="font-size: 14px; opacity: 0.9;">${totalB}栋楼 · ${occupied}/${totalUnits}户</div>
+      </div>
+    </div>
+
+    <div class="metrics">
+      <div class="metric"><div class="metric-value">${totalB}</div><div class="metric-label">已调查楼栋</div></div>
+      <div class="metric"><div class="metric-value">${totalUnits}</div><div class="metric-label">总户数</div></div>
+      <div class="metric"><div class="metric-value green">${occupied}</div><div class="metric-label">估算入住</div></div>
+      <div class="metric"><div class="metric-value orange">${(totalUnits - occupied)}</div><div class="metric-label">估算空置</div></div>
+    </div>
+
+    <div class="card-title" style="padding: 0 4px;">📊 各楼栋入住率</div>
+    ${sorted.map(b => {
+      const c = b.rate >= 70 ? 'green' : b.rate >= 40 ? 'orange' : 'red';
+      return `
+      <div class="bldg-card">
+        <img src="${b.annotatedData || b.photoData}" class="bldg-thumb">
+        <div class="bldg-info">
+          <div class="bldg-name">${esc(b.name)}</div>
+          <div class="bldg-data">${b.floorCount}层 · ${b.unitsPerFloor}户/层 · 亮灯${b.litFloors}层</div>
+        </div>
+        <div class="bldg-rate ${c}">${b.rate.toFixed(1)}%</div>
+      </div>
+      `;
+    }).join('')}
+  `;
+
+  showPage('pageSummary');
+}
+
+function continueSurvey() {
+  openSurvey(currentSurveyId);
+}
+
+// ===================== 导出汇总图 =====================
+function exportSummary() {
+  const s = surveys.find(x => x.id === currentSurveyId);
+  if (!s) return;
+
+  const totalB = s.buildings.length;
+  const totalUnits = s.buildings.reduce((sum, b) => sum + b.totalUnits, 0);
+  const occupied = s.buildings.reduce((sum, b) => sum + b.occupiedUnits, 0);
+  const avgRate = totalUnits > 0 ? (occupied / totalUnits * 100) : 0;
+
+  const canvas = document.createElement('canvas');
+  const w = 700, h = 300 + totalB * 70;
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
 
   // 背景
-  rctx.fillStyle = '#1a1a2e';
-  rctx.fillRect(0, 0, reportW, reportH);
+  ctx.fillStyle = '#f5f7fa'; ctx.fillRect(0, 0, w, h);
 
-  // 原图居中
-  const offsetX = (reportW - w) / 2;
-  rctx.drawImage(srcCanvas, offsetX, 0);
-
-  // 底部信息栏
-  rctx.fillStyle = '#0f0f1a';
-  rctx.fillRect(0, h, reportW, 220);
-
-  // 文字
-  rctx.fillStyle = '#ccd6f6';
-  rctx.font = 'bold 24px sans-serif';
-  rctx.fillText(`🏢 ${building} 入住率检测报告`, 30, h + 40);
-
-  rctx.fillStyle = '#8892b0';
-  rctx.font = '14px sans-serif';
+  // 标题栏
+  ctx.fillStyle = '#2563eb'; ctx.fillRect(0, 0, w, 120);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 24px sans-serif';
+  ctx.fillText(`🏢 ${s.name} 入住率调查报告`, 30, 45);
+  ctx.font = '14px sans-serif';
   const now = new Date();
-  rctx.fillText(`检测时间：${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`, 30, h + 70);
+  ctx.fillText(`${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`, 30, 72);
+  ctx.font = 'bold 48px sans-serif';
+  ctx.fillText(`${avgRate.toFixed(1)}%`, w - 180, 70);
+  ctx.font = '13px sans-serif';
+  ctx.fillText('整体入住率', w - 180, 95);
+  ctx.font = '14px sans-serif';
+  ctx.fillText(`${totalB}栋楼 · ${occupied}/${totalUnits}户`, 30, 98);
 
-  rctx.fillStyle = '#a0aec0';
-  rctx.font = '16px sans-serif';
-  rctx.fillText(`总户数：${totalUnits}  |  每层户数：${unitsPerFloor}  |  亮灯楼层：${litFloors}  |  估算入住：${occupied}户`, 30, h + 105);
+  // 楼栋列表
+  let y = 140;
+  const sorted = [...s.buildings].sort((a, b) => b.rate - a.rate);
+  sorted.forEach(b => {
+    ctx.fillStyle = '#fff'; ctx.fillRect(20, y, w - 40, 55);
+    ctx.strokeStyle = '#e5e7eb'; ctx.strokeRect(20, y, w - 40, 55);
 
-  // 大数字
-  rctx.fillStyle = '#f56565';
-  rctx.font = 'bold 42px sans-serif';
-  const rateStr = rate.toFixed(1) + '%';
-  const rateW = rctx.measureText(rateStr).width;
-  rctx.fillText(rateStr, reportW - rateW - 30, h + 55);
-  rctx.fillStyle = '#8892b0';
-  rctx.font = '14px sans-serif';
-  rctx.fillText('估算入住率', reportW - 120, h + 80);
+    ctx.fillStyle = '#1f2937'; ctx.font = 'bold 15px sans-serif';
+    ctx.fillText(b.name, 36, y + 22);
+    ctx.fillStyle = '#6b7280'; ctx.font = '12px sans-serif';
+    ctx.fillText(`${b.floorCount}层 · ${b.unitsPerFloor}户/层 · 亮灯${b.litFloors}层`, 36, y + 42);
 
-  // 备注
-  rctx.fillStyle = '#666';
-  rctx.font = '13px sans-serif';
-  rctx.fillText('注：按楼层去重统计，同一层多灯只算一层入住。结果为估算值。', 30, h + 145);
+    const c = b.rate >= 70 ? '#16a34a' : b.rate >= 40 ? '#d97706' : '#dc2626';
+    ctx.fillStyle = c; ctx.font = 'bold 22px sans-serif';
+    const rw = ctx.measureText(b.rate.toFixed(1) + '%').width;
+    ctx.fillText(b.rate.toFixed(1) + '%', w - 60 - rw, y + 33);
 
-  // 显示模态框
-  const modal = document.getElementById('reportModal');
-  const content = document.getElementById('modalContent');
-  const img = document.createElement('img');
-  img.src = rc.toDataURL('image/png');
-  content.innerHTML = '';
-  content.appendChild(img);
-  modal.classList.add('active');
+    // 进度条
+    ctx.fillStyle = '#e5e7eb'; ctx.fillRect(200, y + 30, 200, 6);
+    ctx.fillStyle = c; ctx.fillRect(200, y + 30, 200 * (b.rate / 100), 6);
+
+    y += 65;
+  });
+
+  // 底部备注
+  ctx.fillStyle = '#9ca3af'; ctx.font = '12px sans-serif';
+  ctx.fillText('注：按楼层去重统计，结果为估算值。', 30, h - 15);
+
+  // 下载
+  const link = document.createElement('a');
+  link.download = `${s.name}_入住率报告_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+  showToast('报告已导出');
 }
 
-function closeModal() {
-  document.getElementById('reportModal').classList.remove('active');
+// ===================== 编辑楼栋 =====================
+function editBuilding(index) {
+  const s = surveys.find(x => x.id === currentSurveyId);
+  if (!s || !s.buildings[index]) return;
+  const b = s.buildings[index];
+
+  // 移除这栋，重新拍
+  if (confirm(`重新拍摄「${b.name}」？原数据将被覆盖。`)) {
+    s.buildings.splice(index, 1);
+    s.updatedAt = Date.now();
+    saveSurveys();
+
+    document.getElementById('bldgName').value = b.name;
+    document.getElementById('bldgFloors').value = b.floorCount;
+    document.getElementById('bldgUnits').value = b.unitsPerFloor;
+
+    // 恢复参数
+    if (b.params) {
+      document.getElementById('threshold').value = b.params.threshold;
+      updateVal('threshold', b.params.threshold);
+      document.getElementById('minArea').value = b.params.minArea;
+      updateVal('minArea', b.params.minArea);
+      document.getElementById('maxArea').value = b.params.maxArea;
+      updateVal('maxArea', b.params.maxArea);
+      document.getElementById('blur').value = b.params.blur;
+      updateVal('blur', b.params.blur);
+      document.getElementById('floorTh').value = Math.round(b.params.floorTh * 1000);
+      updateVal('floorTh', b.params.floorTh.toFixed(3));
+    }
+
+    // 如果有原图，重新加载检测
+    if (b.photoData) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width; canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        const imgData = ctx.getImageData(0, 0, img.width, img.height);
+
+        runDetectionCore(imgData, img.width, img.height);
+        currentBuildingData = {
+          originalData: imgData, width: img.width, height: img.height,
+          detections: detections, floorDict: floorDict, photoData: b.photoData
+        };
+
+        const previewCanvas = document.getElementById('previewCanvas');
+        previewCanvas.width = img.width; previewCanvas.height = img.height;
+        const pctx = previewCanvas.getContext('2d');
+        pctx.putImageData(imgData, 0, 0);
+        drawAnnotations(pctx, img.width, img.height);
+
+        document.getElementById('uploadArea').classList.add('hidden');
+        document.getElementById('photoPreviewBox').classList.remove('hidden');
+        document.getElementById('buildingInfoCard').style.display = 'block';
+        document.getElementById('saveBldgBtn').disabled = false;
+        updatePreviewResult();
+      };
+      img.src = b.photoData;
+    }
+
+    updateProgress();
+    renderShotList();
+    renderQuickBtns();
+    showPage('pageCapture');
+  }
 }
 
-// ===================== 工具函数 =====================
+// ===================== 工具 =====================
 function showLoading(show) {
   document.getElementById('loading').classList.toggle('active', show);
 }
+
+// 初始化
+loadSurveys();
+renderSurveyList();
 </script>
 </body>
 </html>
